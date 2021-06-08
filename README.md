@@ -13,10 +13,13 @@ will display:
 
 * A list of the cron job that currently exist
 
-### Creating New Cron Jobs
+### Managing Cron Jobs
 
 To create a new cron job:
+* Use the *Create New Cron Job* button at the top of the page, and fill in the bash command and cron schedule.
 
-* Create a new cron job
-Use the New Cron Job button at the top of the page, and fill in the bash command and cron schedule.
+To edit an existing cron job:
+* Click the *Edit* button on the left of a cron job listing and fill in the bash command and cron schedule.
 
+To delete an existing cron job:
+* Click the *Trash* button on the left of a cron job listing to delete the cron job.
