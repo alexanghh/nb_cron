@@ -30,8 +30,8 @@ install:
   - python -m pip install .
 
 # include chrome for selenium test
-addons:
-  chrome: stable
+#addons:
+#  chrome: stable
 # command to run tests
 script:
   - pytest
