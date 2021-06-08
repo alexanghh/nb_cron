@@ -36,17 +36,11 @@ test:
     - package.json
     - tests
   requires:
-    - nodejs
-    - nose
     - pytest
     - pytest-cov
-    - notebook
     - requests
-    - mock
     - selenium
-    - python-chromedriver-binary
-    - tornado
-    - traitlets
+    - geckodriver
   commands:
     - pytest
 
