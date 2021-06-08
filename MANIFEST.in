@@ -1,0 +1,6 @@
+include LICENSE
+include README.md
+include setup.py
+recursive-include nb_cron *
+include versioneer.py
+include nb_cron/_version.py

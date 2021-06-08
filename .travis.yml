@@ -1,0 +1,47 @@
+language: python
+python:
+  - "3.6"      # current default Python on Travis CI
+  - "3.7"
+  - "3.8"
+  - "3.9"
+
+# command to install dependencies
+install:
+  # We do this conditionally because it saves us some downloading if the
+  # version is the same.
+  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+      wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
+    else
+      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+    fi
+  - bash miniconda.sh -b -p $HOME/miniconda
+  - source "$HOME/miniconda/etc/profile.d/conda.sh"
+  - hash -r
+  - conda config --set always_yes yes --set changeps1 no
+  - conda config --add channels conda-forge
+  - conda update -q conda
+  # Useful for debugging any issues with conda
+  - conda info -a
+
+  # Replace dep1 dep2 ... with your dependencies
+  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION
+  - conda activate test-environment
+  - conda install --file requirements.txt
+  - python -m pip install .
+
+# include chrome for selenium test
+addons:
+  chrome: stable
+# command to run tests
+script:
+  - pytest
+after_success:
+  - coveralls --service=travis-pro
+  # Build the conda recipe for this package
+  - conda install conda-build
+  - conda build -q conda-recipe --python=$TRAVIS_PYTHON_VERSION --output-folder bld-dir
+# Install the command line API for CONDA uploads
+  - conda install anaconda-client
+# Upload to anaconda
+  - export ANACONDA_API_TOKEN=$CONDA_UPLOAD_TOKEN
+  - anaconda upload bld-dir/**/nb_cron-*.tar.bz2

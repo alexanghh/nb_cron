@@ -1,0 +1,4 @@
+[run]
+source=nb_cron
+omit =
+    nb_cron/_version.py

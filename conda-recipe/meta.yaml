@@ -1,0 +1,62 @@
+{% set data = load_setup_py_data() %}
+
+package:
+  name: nb_cron
+  version: {{ data.get('version') }}
+
+source:
+  path: ../
+
+build:
+  skip: true  # [win]
+  number: 0
+  script:
+    - {{ PYTHON }} -m pip install --no-deps --ignore-installed .
+    - jupyter nbextension install nb_cron --py --sys-prefix --overwrite
+
+requirements:
+  host:
+    - python
+    - setuptools
+    - pip
+    - notebook >=4.3.1
+    - croniter
+    - python-crontab
+
+  run:
+    - python
+    - notebook >=4.3.1
+    - croniter
+    - python-crontab
+
+test:
+  source_files:
+    - setup.cfg
+    - .coveragerc
+    - package.json
+    - tests
+  requires:
+    - nodejs
+    - nose
+    - pytest
+    - pytest-cov
+    - notebook
+    - requests
+    - mock
+    - selenium
+    - python-chromedriver-binary
+    - tornado
+    - traitlets
+  commands:
+    - pytest
+
+about:
+  home: https://github.com/alexanghh/nb_cron
+  license: BSD-3-Clause
+  license_family: BSD
+  license_file: LICENSE
+  summary: Cron tab access extension from within Jupyter
+
+extra:
+  recipe-maintainers:
+    - alexanghh

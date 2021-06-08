@@ -1,0 +1,17 @@
+coverage
+coveralls
+croniter
+flake8
+mock
+nodejs
+nose
+notebook >=4.3.1
+pytest
+pytest-cov
+python-chromedriver-binary
+python-crontab
+requests
+selenium
+tornado
+traitlets
+yaml
