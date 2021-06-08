@@ -5,11 +5,10 @@ from notebook.serverextensions import toggle_serverextension_python
 from notebook.tests.launchnotebook import NotebookTestBase
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
-from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.firefox.options import Options
 from traitlets.config.loader import Config
 
 import nb_cron
-import chromedriver_binary
 
 
 class NbCronNotebookTest(NotebookTestBase):
@@ -30,9 +29,9 @@ class NbCronNotebookTest(NotebookTestBase):
         self.__class__.notebook.init_server_extension_config()
         self.__class__.notebook.init_server_extensions()
 
-        chrome_options = Options()
-        chrome_options.add_argument("--headless")
-        self.driver = webdriver.Chrome(options=chrome_options)
+        options = Options()
+        options.add_argument("-headless")
+        self.driver = webdriver.Firefox(options=options)
 
     def tearDown(self):
         self.driver.quit()
