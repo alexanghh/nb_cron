@@ -1,18 +1,19 @@
+{% set name = "nb_cron" %}
 {% set data = load_setup_py_data() %}
 
 package:
-  name: nb_cron
+  name: {{ name|lower }}
   version: {{ data.get('version') }}
 
 source:
   path: ../
 
 build:
-  skip: true  # [win]
   number: 0
   script:
-    - {{ PYTHON }} -m pip install --no-deps --ignore-installed .
-    - jupyter nbextension install nb_cron --py --sys-prefix --overwrite
+    - "{{ PYTHON }} -m pip install . -vv"
+    - "jupyter nbextension install nb_cron --py --sys-prefix --overwrite"
+  skip: true  # [win]
 
 requirements:
   host:
@@ -22,7 +23,6 @@ requirements:
     - notebook >=4.3.1
     - croniter
     - python-crontab
-
   run:
     - python
     - notebook >=4.3.1
@@ -33,7 +33,6 @@ test:
   source_files:
     - setup.cfg
     - .coveragerc
-    - package.json
     - tests
   requires:
     - pytest
@@ -49,7 +48,10 @@ about:
   license: BSD-3-Clause
   license_family: BSD
   license_file: LICENSE
-  summary: Cron tab access extension from within Jupyter
+  summary: 'Cron tab access extension from within Jupyter'
+  description: |
+    nb_cron is a simple tool to allow managing of crontab from within Jupyter.
+  dev_url: https://github.com/alexanghh/nb_cron
 
 extra:
   recipe-maintainers:
