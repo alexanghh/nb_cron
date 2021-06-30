@@ -34,6 +34,14 @@ div.half_width {
     display: inline-block;
 }
 
+/* Create two equal columns that floats next to each other */
+div.column {
+  float: left;
+  width: 50%;
+  padding: 10px;
+  height: 300px; /* Should be removed. Only for demonstration */
+}
+
 input.small-input {
     height: 22px;
     width: 100%;
@@ -87,15 +95,12 @@ label {
 .form-style-2 span.required{
 	color:red;
 }
-.form-style-2 .schedule{
-	width: 150px;
-}
 .form-style-2 input.input-field, .form-style-2 .select-field{
 	width: 48%;
 }
 .form-style-2 input.input-field,
-.form-style-2 .schedule,
-.form-style-2 .comment,
+.form-style-2 .short-input-field,
+.form-style-2 .long-input-field,
 .form-style-2 .textarea-field,
  .form-style-2 .select-field{
 	box-sizing: border-box;
@@ -122,7 +127,10 @@ label {
 	width: 75%;
 }
 
-.form-style-2 .comment{
+.form-style-2 .short-input-field{
+	width: 150px;
+}
+.form-style-2 .long-input-field{
 	width: 75%;
 }
 

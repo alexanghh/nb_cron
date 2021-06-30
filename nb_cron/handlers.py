@@ -16,9 +16,7 @@ from tempfile import TemporaryFile
 
 from pkg_resources import parse_version
 from notebook.utils import url_path_join as ujoin
-from notebook.base.handlers import (
-    APIHandler,
-)
+from notebook.base.handlers import APIHandler
 from tornado import web
 
 from .jobmanager import JobManager
@@ -121,6 +119,31 @@ class ScheduleActionHandler(JobBaseHandler):
 
         self.finish(json.dumps(data))
 
+class NotebookActionHandler(JobBaseHandler):
+    """
+    Handler for `POST /notebook/{papermill}`
+    which performs the requested action on the cron schedule.
+    """
+
+    @web.authenticated
+    def post(self, action):
+        if action == 'papermill':
+            path = self.get_argument('path', default=None)
+            if not path:
+                raise web.HTTPError(
+                    status_code=422,
+                    reason=u"Path empty",
+                )
+            data = self.job_manager.extract_papermill(path)
+
+        # catch-all ok
+        if 'error' in data:
+            raise web.HTTPError(
+                status_code=data['status_code'] or 400,
+                reason=data['message'],
+            )
+
+        self.finish(json.dumps(data))
 
 # -----------------------------------------------------------------------------
 # URL to handler mappings
@@ -128,6 +151,7 @@ class ScheduleActionHandler(JobBaseHandler):
 
 _job_action_regex = r"(?P<action>create|edit|remove)"
 _schedule_action_regex = r"(?P<action>check)"
+_notebook_action_regex = r"(?P<action>papermill)"
 
 # there is almost no text that is invalid, but no hyphens up front, please
 # neither all these suspicious but valid characters...
@@ -138,7 +162,9 @@ default_handlers = [
     (r"/jobs/%s/%s" % (_job_regex, _job_action_regex),
      JobActionHandler),
     (r"/schedule/%s" % (_schedule_action_regex),
-     ScheduleActionHandler)
+     ScheduleActionHandler),
+    (r"/notebook/%s" % (    _notebook_action_regex),
+     NotebookActionHandler),
 ]
 
 
