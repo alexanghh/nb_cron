@@ -112,7 +112,7 @@ define([
             $('<form class="job_details_form"/>').append($('<fieldset/>')
                 .append($('<label for="notebook_input"><span>Input Notebook</span></label>'))
                 .append(input)
-                .append(common.icon('search').addClass('fa-lg').attr('title', 'process notebook').click(function () {
+                .append(common.icon('search').attr('id', 'process_notebook').addClass('fa-lg').attr('title', 'process notebook').click(function () {
                     models.notebook.gen_papermill_param($('#notebook_input').val(), input, output, env, kernel, parameters)
                     return false;
                 }))
@@ -153,7 +153,7 @@ define([
             ));
 
         function ok() {
-            let command_string = 'papermill ' + $('#notebook_input').val() + ' ' + $('#notebook_output').val() + ' --kernel ' + $('#notebook_kernel').val()
+            let command_string = 'papermill "' + $('#notebook_input').val() + '" "' + $('#notebook_output').val() + '" --kernel ' + $('#notebook_kernel').val()
             var params_key = $("input[id='notebook_parameters_key[]']").map(function () {
                 return $(this).val();
             }).get();
@@ -166,10 +166,10 @@ define([
             for (let i = 0; i < params_key.length; i++) {
                 if (params_key[i] && params_value[i]) {
                     if (params_is_raw[i]) {
-                        command_string += ' --parameters_raw ' + params_key[i] + ' ' + params_value[i]
+                        command_string += ' --parameters_raw ' + params_key[i] + ' ' + common.bashQuote(params_value[i])
                     }
                     else {
-                        command_string += ' --parameters ' + params_key[i] + ' ' + params_value[i]
+                        command_string += ' --parameters ' + params_key[i] + ' ' + common.bashQuote(params_value[i])
                     }
                 }
             }
@@ -202,7 +202,7 @@ define([
                     .append($('<label for="job_command">')
                         .append($('<span>')
                             .append($('<span>Command</span><br /><br />'))
-                            .append($('<button title="" class="btn btn-default btn-xs">Notebook<br/>Command<br/>Builder</button>').click(function () {
+                            .append($('<button id="papermill_builder" title="" class="btn btn-default btn-xs">Notebook<br/>Command<br/>Builder</button>').click(function () {
                                 papermill_builder_prompt(command);
                                 return false;
                             }))))
@@ -218,7 +218,7 @@ define([
                         '# * *  * *  *" />' +
                         '</span>'))
                     .append(schedule)
-                    .append(common.icon('calendar-check-o').addClass('fa-lg').attr('title', 'check schedule').click(function () {
+                    .append(common.icon('calendar-check-o').attr('id', 'check_schedule').addClass('fa-lg').attr('title', 'check schedule').click(function () {
                         models.schedule.check($('#job_schedule').val(), $('#job_schedule_list'));
                         return false;
                     }))

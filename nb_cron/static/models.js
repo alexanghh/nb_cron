@@ -141,10 +141,12 @@ define([
                 parameters.empty()
                 let typed_value = ""
                 for (const [key, value] of Object.entries(param)) {
-                    typed_value = value
-                    if (typeof value === 'string') {
-                        typed_value = '"' + value + '"'
-                    }
+                    if (typeof value === 'string')
+                        typed_value = common.escapeSpecialChars(value)
+                    else if (typeof value === 'boolean' && data.kernel.startsWith("py"))
+                        typed_value = value.toString().charAt(0).toUpperCase() + value.toString().slice(1);
+                    else
+                        typed_value = value
                     parameters.append($('<div class="list_item row"/>')
                         .append($('<div class="col-xs-5" />')
                             .append($('<input id="notebook_parameters_key[]" class="long-input-field" />').val(key)))
