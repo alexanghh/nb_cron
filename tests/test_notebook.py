@@ -40,7 +40,7 @@ class NbCronNotebookTest(NotebookTestBase):
         self.__class__.notebook.init_server_extensions()
 
         options = Options()
-        # options.add_argument("-headless")
+        options.add_argument("-headless")
         self.driver = webdriver.Firefox(options=options)
 
     def tearDown(self):
