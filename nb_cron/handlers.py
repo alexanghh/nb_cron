@@ -134,7 +134,7 @@ class NotebookActionHandler(JobBaseHandler):
                     status_code=422,
                     reason=u"Path empty",
                 )
-            data = self.job_manager.extract_papermill(path)
+            data = self.job_manager.extract_papermill_parameters(path)
 
         # catch-all ok
         if 'error' in data:

@@ -80,6 +80,15 @@ class JobManager(LoggingConfigurable):
 
     def edit_job(self, job, schedule, command, comment):
         cron = CronTab(user=True)
+
+        # check if job id is within range
+        if job < 0 or job > len(cron):
+            return {
+                "error": True,
+                "message": u"Job id not found.",
+                "status_code": 422
+            }
+
         job = cron[job]
         try:
             self.log.debug('editing cron job id:%s schedule:%s command:%s comment:%s',
@@ -128,21 +137,61 @@ class JobManager(LoggingConfigurable):
             "status_code": 200
         }
 
-    def check_variables(self, _nb_cron_code):
+    def extract_variables(self, _nb_cron_code, _nb_cron_kernel='python'):
+        """Extract declared variables from cell
+
+        Args:
+            _nb_cron_code: cell code
+            _nb_cron_kernel: kernel of code for preprocessing
+
+        Returns:
+            dict of variables' name and value
+        """
         try:
+            self.log.debug('kernel: ' + _nb_cron_kernel + ' original cell: ' + _nb_cron_code)
+            # check each line of code
+            _nb_cron_code_cleaned = []
+            for _nb_cron_code_line in _nb_cron_code.split("\n"):
+                _nb_cron_code_line = _nb_cron_code_line.strip()
+                # remove magic line
+                if not _nb_cron_code_line.startswith("%"):
+                    # remove val from scala spark code to mimic python code
+                    if _nb_cron_kernel.startswith("spark") and _nb_cron_code_line.startswith("val "):
+                        _nb_cron_code_line = _nb_cron_code_line[len("val "):]
+                        # handle boolean case difference
+                        _nb_cron_code_line = _nb_cron_code_line.replace("true", "True")
+                        _nb_cron_code_line = _nb_cron_code_line.replace("false", "False")
+                    _nb_cron_code_cleaned.append(_nb_cron_code_line)
+            _nb_cron_code = "\n".join(_nb_cron_code_cleaned)
+            self.log.debug('kernel: ' + _nb_cron_kernel + ' processed cell: ' + _nb_cron_code)
+
             # exec code to get variable names and values
             exec(_nb_cron_code)
             var = locals()
             var.pop("_nb_cron_code")  # remove method parameter
+            var.pop("_nb_cron_code_cleaned")  # remove method parameter
+            var.pop("_nb_cron_code_line")  # remove method parameter
+            var.pop("_nb_cron_kernel")  # remove method parameter
             var.pop("self")  # remove self
+
             return var
-        except SyntaxError  as err:
-            self.log.error('[nb_cron] Check papermill parameters fail:\n%s', err)
+        except NameError as err:
+            self.log.error('[nb_cron] papermill extract parameters fail:\n%s', err)
+            return {}
+        except SyntaxError as err:
+            self.log.error('[nb_cron] papermill extract parameters fail:\n%s', err)
             return {}
 
-    def extract_papermill(self, path):
-        """process notebook to get papermill inputs"""
+    def extract_papermill_parameters(self, path):
+        """Process notebook to get papermill inputs
 
+        Args:
+            path: path to notebook
+
+        Returns:
+            successful - maps of notebook input/output abs path, env, kernel, parameters and status_code
+            error - error message and  status_code
+        """
         kernel = ""
         variables = {}
         try:
@@ -168,7 +217,14 @@ class JobManager(LoggingConfigurable):
                 if cell["cell_type"] == "code":
                     if "metadata" in cell and "tags" in cell["metadata"] and "parameters" in cell["metadata"]["tags"]:
                         code = "".join(cell["source"])
-            variables = self.check_variables(code)
+            variables = self.extract_variables(code, kernel)
+        except FileNotFoundError as err:
+            self.log.error('[nb_cron] Extract papermill parameters fail:\n%s', err)
+            return {
+                "error": True,
+                "message": u"{err}".format(err=err),
+                "status_code": 422
+            }
         except KeyError as err:
             self.log.error('[nb_cron] Extract papermill parameters fail:\n%s', err)
             return {
