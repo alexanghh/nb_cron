@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2021, nb_cron Contributors
+ *
+ * Distributed under the terms of the BSD 3-Clause License.
+ *
+ * The full license is in the file LICENSE, distributed with this software.
+ */
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/endsWith
 if (!String.prototype.endsWith) {
     String.prototype.endsWith = function (searchString, position) {

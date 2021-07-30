@@ -1,7 +1,10 @@
-"""
-# Copyright (c) 2015-2016 Continuum Analytics.
-# See LICENSE.txt for the license.
-"""
+#############################################################################
+# Copyright (c) 2021, nb_cron Contributors                                  #
+#                                                                           #
+# Distributed under the terms of the BSD 3-Clause License.                  #
+#                                                                           #
+# The full license is in the file LICENSE, distributed with this software.  #
+#############################################################################
 # pylint: disable=W0221
 
 # Tornado get and post handlers often have different args from their base class
