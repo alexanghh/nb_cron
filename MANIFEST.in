@@ -5,3 +5,4 @@ recursive-include nb_cron *
 include versioneer.py
 include nb_cron/_version.py
 include .coveragerc
+include tests/*.ipynb
