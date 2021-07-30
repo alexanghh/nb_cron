@@ -5,6 +5,9 @@ from notebook.serverextensions import toggle_serverextension_python
 from notebook.tests.launchnotebook import NotebookTestBase
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions
+from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.firefox.options import Options
 from traitlets.config.loader import Config
 
@@ -30,14 +33,13 @@ class NbCronNotebookTest(NotebookTestBase):
         self.__class__.notebook.init_server_extensions()
 
         options = Options()
-        options.add_argument("-headless")
+        # options.add_argument("-headless")
         self.driver = webdriver.Firefox(options=options)
 
     def tearDown(self):
         self.driver.quit()
         super(NbCronNotebookTest, self).tearDown()
 
-    # @unittest.skip("skipping for now because parent class disable extensions")
     def test_01_body(self):
         body = None
         try:
@@ -48,7 +50,6 @@ class NbCronNotebookTest(NotebookTestBase):
             pass
         self.assertIsNotNone(body)
 
-    # @unittest.skip("skipping for now because parent class disable extensions")
     def test_02_cron_tab(self):
         cron_tab = None
         try:
@@ -59,13 +60,41 @@ class NbCronNotebookTest(NotebookTestBase):
             pass
         self.assertIsNotNone(cron_tab)
 
-    # @unittest.skip("skipping for now because parent class disable extensions")
     def test_03_job_list(self):
         job_list = None
         try:
             self.driver.get(self.base_url() + '?token=' + self.token)
             self.driver.implicitly_wait(30)  # seconds
             job_list = self.driver.find_element_by_id("job_list_body")
+        except NoSuchElementException:
+            pass
+        self.assertIsNotNone(job_list)
+
+    def test_04_create_job(self):
+        job_list = None
+        try:
+            self.driver.get(self.base_url() + '?token=' + self.token)
+            self.driver.implicitly_wait(30)  # seconds
+            job_list = self.driver.find_element_by_id("job_list_body")
+            WebDriverWait(self.driver, 30).until(expected_conditions.element_to_be_clickable((By.ID, "cron_tab"))).click()
+            WebDriverWait(self.driver, 30).until(expected_conditions.element_to_be_clickable((By.ID, "new_job"))).click()
+            WebDriverWait(self.driver, 30).until(expected_conditions.element_to_be_clickable((By.ID, "job_schedule"))).send_keys("* * * * *")
+            WebDriverWait(self.driver, 30).until(expected_conditions.element_to_be_clickable((By.ID, "check_schedule"))).click()
+        except NoSuchElementException:
+            pass
+        self.assertIsNotNone(job_list)
+
+    def test_05_papermill_builder(self):
+        job_list = None
+        try:
+            self.driver.get(self.base_url() + '?token=' + self.token)
+            self.driver.implicitly_wait(30)  # seconds
+            job_list = self.driver.find_element_by_id("job_list_body")
+            WebDriverWait(self.driver, 30).until(expected_conditions.element_to_be_clickable((By.ID, "cron_tab"))).click()
+            WebDriverWait(self.driver, 30).until(expected_conditions.element_to_be_clickable((By.ID, "new_job"))).click()
+            WebDriverWait(self.driver, 30).until(expected_conditions.element_to_be_clickable((By.ID, "papermill_builder"))).click()
+            WebDriverWait(self.driver, 30).until(expected_conditions.element_to_be_clickable((By.ID, "notebook_input"))).send_keys("tests/pyspark parameter test.ipynb")
+            WebDriverWait(self.driver, 30).until(expected_conditions.element_to_be_clickable((By.ID, "process_notebook"))).click()
         except NoSuchElementException:
             pass
         self.assertIsNotNone(job_list)

@@ -78,6 +78,7 @@ class NbCronAPITest(NotebookTestBase):
         self.job_schedule = "* * * * *"
         self.job_command = "echo"
         self.job_comment = "comment"
+        self.notebook_path = "tests/python parameter test.ipynb"
         self.create_job()
         self.job_id = len(self.cron_api.jobs()) - 1
 
@@ -108,27 +109,30 @@ class NbCronAPITest(NotebookTestBase):
         return self.cron_api.post(["schedule", "check"],
                                   params={"schedule": schedule or self.job_schedule})
 
-    # @unittest.skip("skipping for now because parent class disable extensions")
+    def extract_papermill_parameters(self, notebook_path=None):
+        return self.cron_api.post(["notebook", "papermill"],
+                                  params={"path": notebook_path or self.notebook_path})
+
     def test_01_job_list(self):
         jobs = self.cron_api.jobs()
         root = filter(lambda job: job["schedule"] == "* * * * *",
                       jobs["jobs"])
         self.assertGreaterEqual(len(list(root)), 1)
 
-    # @unittest.skip("skipping for now because parent class disable extensions")
     def test_02_job_create_and_remove(self):
         self.assertEqual(self.create_job().status_code, 201)
         jid = len(self.cron_api.jobs()) - 1
         self.assertEqual(self.remove_job(jid).status_code, 200)
 
     def test_03_job_create_fail(self):
+        self.assertEqual(self.create_job(schedule=" ").status_code, 422)
         self.assertEqual(self.create_job(schedule="* * * * * *").status_code, 422)
     
     def test_04_job_remove_fail(self):
+        self.assertEqual(self.remove_job(' ').status_code, 404)
         self.assertEqual(self.remove_job(-2).status_code, 404)
         self.assertEqual(self.remove_job(999999).status_code, 422)
 
-    # @unittest.skip("skipping for now because parent class disable extensions")
     def test_05_job_create_edit_remove(self):
         self.assertEqual(self.create_job().status_code, 201)
         jid = len(self.cron_api.jobs()) - 1
@@ -136,17 +140,28 @@ class NbCronAPITest(NotebookTestBase):
         self.assertEqual(self.remove_job(jid).status_code, 200)
 
     def test_06_job_edit_fail(self):
+        self.assertEqual(self.edit_job(jid=" ").status_code, 404)
+        self.assertEqual(self.edit_job(jid=8888).status_code, 422)
+        self.assertEqual(self.edit_job(command=" ").status_code, 422)
+        self.assertEqual(self.edit_job(schedule=" ").status_code, 422)
         self.assertEqual(self.edit_job(schedule="* * * * * *").status_code, 422)
 
-    # @unittest.skip("skipping for now because parent class disable extensions")
     def test_07_job_nonsense(self):
         r = self.cron_api.post(["jobs", str(self.job_id), "nonsense"])
         self.assertEqual(r.status_code, 404)
 
-    # @unittest.skip("skipping for now because parent class disable extensions")
     def test_08_schedule_check(self):
         self.assertEqual(self.check_schedule().status_code, 200)
 
-    # @unittest.skip("skipping for now because parent class disable extensions")
     def test_09_schedule_check_fail(self):
+        self.assertEqual(self.check_schedule(schedule=' ').status_code, 422)
         self.assertEqual(self.check_schedule(schedule='* * * * * *').status_code, 422)
+
+    def test_10_extract_papermill_parameters(self):
+        self.assertEqual(self.extract_papermill_parameters(notebook_path='tests/python parameter test.ipynb').status_code, 200)
+        self.assertEqual(self.extract_papermill_parameters(notebook_path='tests/spark parameter test.ipynb').status_code, 200)
+        self.assertEqual(self.extract_papermill_parameters(notebook_path='tests/pyspark parameter test.ipynb').status_code, 200)
+
+    def test_11_extract_papermill_parameters_fail(self):
+        self.assertEqual(self.extract_papermill_parameters(notebook_path=' ').status_code, 422)
+        self.assertEqual(self.extract_papermill_parameters(notebook_path='test.ipynb').status_code, 422)
