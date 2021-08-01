@@ -6,27 +6,29 @@ package:
   version: {{ data.get('version') }}
 
 source:
-  path: ../
+  url: /home/alexanghh/PycharmProjects/nb_cron/dist/nb_cron-0.2.1+0.ge4122fd.dirty.tar.gz
 
 build:
   number: 0
   script:
     - "{{ PYTHON }} -m pip install . -vv"
     - "jupyter nbextension install nb_cron --py --sys-prefix --overwrite"
-  skip: true  # [win]
+  skip: true  # [win or python_impl == 'pypy']
 
 requirements:
   host:
     - python
     - setuptools
     - pip
+    - notebook >=4.3.1
+    - python-crontab
   run:
     - python
     - notebook >=4.3.1
-    - croniter
-    - python-crontab
     - traitlets
     - tornado
+    - python-crontab
+    - croniter
 
 test:
   source_files:

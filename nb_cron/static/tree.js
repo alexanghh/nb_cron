@@ -18,9 +18,6 @@ define([
     "use strict";
 
     function load() {
-        console.log('loading tree.js')
-        console.log("tree.load.models: " + models)
-
         if (!Jupyter.notebook_list) return;
         var base_url = Jupyter.notebook_list.base_url;
         $('head').append(
@@ -29,8 +26,6 @@ define([
             .attr('type', 'text/css')
             .attr('href', urls.static_url + 'cron.css')
         );
-
-        console.log("tree.load.models: " + models)
 
         utils.ajax(urls.static_url + 'cron.html', {
             dataType: 'html',
@@ -53,7 +48,6 @@ define([
                     )
                 );
 
-                console.log("tree.load.models2: " + models)
                 views.JobView.init();
                 models.jobs.view = views.JobView;
 
