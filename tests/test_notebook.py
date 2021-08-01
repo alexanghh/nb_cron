@@ -101,7 +101,7 @@ class NbCronNotebookTest(NotebookTestBase):
             WebDriverWait(self.driver, 30).until(expected_conditions.element_to_be_clickable((By.ID, "new_job"))).click()
             WebDriverWait(self.driver, 30).until(expected_conditions.element_to_be_clickable((By.ID, "papermill_builder"))).click()
             WebDriverWait(self.driver, 30).until(expected_conditions.element_to_be_clickable((By.ID, "notebook_input"))).send_keys("tests/pyspark parameter test.ipynb")
-            WebDriverWait(self.driver, 30).until(expected_conditions.element_to_be_clickable((By.ID, "process_notebook"))).click()
+            WebDriverWait(self.driver, 30).until(expected_conditions.element_to_be_clickable((By.ID, "inspect_notebook"))).click()
         except NoSuchElementException:
             pass
         self.assertIsNotNone(job_list)

@@ -21,10 +21,11 @@ if (!String.prototype.endsWith) {
 
 define([
     'jquery',
+    'base/js/namespace',
     'base/js/utils',
     'base/js/dialog',
     'base/js/keyboard',
-], function ($, utils, dialog, keyboard) {
+], function ($, Jupyter, utils, dialog, keyboard) {
     "use strict";
 
     function SuccessWrapper(success_callback, error_callback) {
@@ -99,8 +100,12 @@ define([
         var opts = {
             title: title,
             body: msg,
-            buttons: buttons
+            buttons: buttons,
         };
+
+        // hack for copy and paste for dialog in notebook
+        if (Jupyter.notebook)
+            opts['keyboard_manager'] = Jupyter.notebook.keyboard_manager
 
         var d;
 
@@ -117,6 +122,8 @@ define([
             }
         }
         d = dialog.modal(opts);
+
+        return d;
     }
 
 
