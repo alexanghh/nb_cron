@@ -13,6 +13,11 @@ define([
 ], function ($, utils, common, urls) {
     "use strict";
 
+    // define default values for config parameters
+    var config = {
+        papermill_path: 'papermill'
+    };
+
     var NullView = {
         refresh: function () {
         }
@@ -136,13 +141,15 @@ define([
     }
 
     var notebook = {
-        gen_papermill_param: function (path, input, output, env, kernel, parameters) {
+        gen_papermill_param: function (path, input, output, cwd, env, activate, kernel, parameters) {
             var error_callback = common.MakeErrorCallback('Error Checking Schedule', 'An error occurred while processing "' + path + '"');
 
             function build_papermill(data, status, xhr) {
                 input.val(data.input || "")
                 output.val(data.output || "")
+                cwd.val(data.cwd || "")
                 env.val(data.env || "")
+                activate.val(data.activate || "")
                 kernel.val(data.kernel || "")
                 const param = data.parameters || {}
                 parameters.empty()
@@ -188,6 +195,7 @@ define([
     return {
         'jobs': jobs,
         'schedule': schedule,
-        'notebook': notebook
+        'notebook': notebook,
+        'config': config
     };
 });

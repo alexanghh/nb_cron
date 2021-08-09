@@ -112,9 +112,11 @@ define([
     var prompts = {
 
         papermillBuilderPrompt: function (command, parent_title) {
-            var input = $('<textarea id="notebook_input" class="textarea-field"/>');
-            var output = $('<textarea id="notebook_output" class="textarea-field"/>');
+            var input = $('<textarea id="notebook_input" class="short-textarea-field"/>');
+            var output = $('<textarea id="notebook_output" class="short-textarea-field"/>');
+            var cwd = $('<textarea id="notebook_cwd" class="short-textarea-field"/>');
             var env = $('<input id="notebook_env" class="input-field"/>');
+            var activate = $('<input type="hidden" id="notebook_env_activate"/>');
             var kernel = $('<input id="notebook_kernel" class="input-field"/>');
             var parameters = $('<div id="notebook_parameters_list_body" class="list_body scrollable">');
 
@@ -123,13 +125,16 @@ define([
                     .append($('<label for="notebook_input"><span>Input Notebook</span></label>'))
                     .append(input)
                     .append(common.icon('search').attr('id', 'inspect_notebook').addClass('fa-lg').attr('title', 'Inspect notebook').click(function () {
-                        models.notebook.gen_papermill_param(input.val(), input, output, env, kernel, parameters)
+                        models.notebook.gen_papermill_param(input.val(), input, output, cwd, env, activate, kernel, parameters)
                         return false;
                     }))
                     .append($('<label for="notebook_output"><span>Output Notebook</span></label>'))
                     .append(output)
+                    .append($('<label for="notebook_cwd"><span>Working Directory</span></label>'))
+                    .append(cwd)
                     .append($('<label for="notebook_env"><span>Env</span></label>'))
                     .append(env)
+                    .append(activate)
                     .append($('<label for="notebook_kernel"><span>Kernel</span></label>'))
                     .append(kernel)
                     .append($('<div id="parameters_toolbar" class="list_toolbar row" />')
@@ -163,7 +168,8 @@ define([
                 ));
 
             function ok() {
-                let command_string = 'papermill "' + $('#notebook_input').val() + '" "' + $('#notebook_output').val() + '" --kernel ' + $('#notebook_kernel').val()
+                let command_string = models.config.papermill_path + ' "' + $('#notebook_input').val() + '" "' + $('#notebook_output').val() +
+                    '" --cwd "' + $('#notebook_cwd').val() + '" --kernel ' + $('#notebook_kernel').val()
                 var params_key = $("input[id='notebook_parameters_key[]']").map(function () {
                     return $(this).val();
                 }).get();
@@ -182,8 +188,8 @@ define([
                         }
                     }
                 }
-                if ($('#notebook_env').val()) {
-                    command_string = 'conda activate ' + $('#notebook_env').val() + '; ' + command_string
+                if ($('#notebook_env').val() &&  $('#notebook_env_activate').val()) {
+                    command_string = '. ' + $('#notebook_env_activate').val() + ' ' + $('#notebook_env').val() + '; ' + command_string
                 }
                 command.val(command_string);
             }

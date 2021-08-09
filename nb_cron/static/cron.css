@@ -118,12 +118,18 @@ label {
 }
 .form-style-2 .input-field:focus,
 .form-style-2 .schedule:focus,
+.form-style-2 short-textarea-field:focus,
 .form-style-2 .textarea-field:focus,
 .form-style-2 .select-field:focus{
 	border: 1px solid #0C0;
 }
 .form-style-2 .textarea-field{
 	height:100px;
+	width: 75%;
+}
+
+.form-style-2 .short-textarea-field{
+	height:50px;
 	width: 75%;
 }
 

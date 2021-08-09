@@ -11,14 +11,26 @@ define([
     'base/js/namespace',
     'base/js/utils',
     'base/js/dialog',
+    'services/config',
     './common',
     './urls',
     './models',
     './views',
-], function (require, $, Jupyter, utils, dialog, common, urls, models, views) {
+], function (require, $, Jupyter, utils, dialog, configmod, common, urls, models, views) {
     "use strict";
 
     var $view = $('#cron');
+
+    var conf = new configmod.ConfigSection('common', {base_url: utils.get_body_data("baseUrl")});
+    conf.loaded.then(function () {
+        if (Jupyter.notebook && conf.data.hasOwnProperty('papermill_path')) {
+            var papermill_path = conf.data.papermill_path;
+            if (papermill_path) {
+                console.log("papermill_path:", papermill_path);
+                models.config.papermill_path = papermill_path;
+            }
+        }
+    });
 
     function show_cron_view($view) {
         var d = dialog.modal({
@@ -70,6 +82,7 @@ define([
 
         var papermillDialog = views.prompts.papermillBuilderPrompt(jobDialog.find('#job_command'), title);
         papermillDialog.find('#notebook_input').val(Jupyter.notebook.notebook_path);
+        Jupyter.notebook
         papermillDialog.find('#inspect_notebook').trigger($.Event("click"));
     }
 
@@ -102,7 +115,9 @@ define([
 
     function load() {
         if (!Jupyter.notebook) return;
-        
+
+        conf.load()
+
         $('head').append(
             $('<link>')
                 .attr('rel', 'stylesheet')

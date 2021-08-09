@@ -127,7 +127,7 @@ class JobManager(LoggingConfigurable):
         try:
             job.setall(schedule)
         except KeyError as err:
-            self.log.error('[nb_cron] Schedule check fail:\n%s', err)
+            self.log.debug('[nb_cron] Schedule check fail:\n%s', err)
             return {
                 "error": True,
                 "message": u"{err}".format(err=err),
@@ -155,7 +155,7 @@ class JobManager(LoggingConfigurable):
             dict of variables' name and value
         """
         try:
-            self.log.debug('kernel: ' + _nb_cron_kernel + ' original cell: ' + _nb_cron_code)
+            self.log.debug('kernel: %s, original cell: %s', _nb_cron_kernel, _nb_cron_code)
             # check each line of code
             _nb_cron_code_cleaned = []
             for _nb_cron_code_line in _nb_cron_code.split("\n"):
@@ -170,7 +170,7 @@ class JobManager(LoggingConfigurable):
                         _nb_cron_code_line = _nb_cron_code_line.replace("false", "False")
                     _nb_cron_code_cleaned.append(_nb_cron_code_line)
             _nb_cron_code = "\n".join(_nb_cron_code_cleaned)
-            self.log.debug('kernel: ' + _nb_cron_kernel + ' processed cell: ' + _nb_cron_code)
+            self.log.debug('kernel: %s, processed cell: %s', _nb_cron_kernel, _nb_cron_code)
 
             # exec code to get variable names and values
             exec(_nb_cron_code)
@@ -205,19 +205,28 @@ class JobManager(LoggingConfigurable):
             import os
             notebook_input = os.path.abspath(path)
             notebook_output = notebook_input.replace(".ipynb", "_output.ipynb")
+            notebook_cwd = os.sep.join(notebook_input.split(os.sep)[:-1])
             notebook_string = open(notebook_input).read()
             notebook = json.loads(notebook_string)
             # get kernel
             env = ""
+            conda_activate = ""
             kernel = notebook["metadata"]["kernelspec"]["name"]
             # check for conda env
-            self.log.error('[nb_cron] conda_prefix:\n%s', self.conda_prefix)
             if kernel.startswith(self.conda_prefix):
                 env_kernel = kernel[len(self.conda_prefix):].split(self.conda_separator)
                 env = env_kernel[0]
                 kernel = self.conda_separator.join(env_kernel[1:])
                 if env and kernel == 'py':
                     kernel = 'python3'
+            else:
+                # get current activated environment
+                if 'CONDA_DEFAULT_ENV' in os.environ:
+                    env = os.environ['CONDA_DEFAULT_ENV']
+            if 'CONDA_PREFIX' in os.environ:
+                conda_activate = os.environ['CONDA_PREFIX'] + os.sep + "bin" + os.sep + "activate"
+            self.log.debug('conda_activate: %s', conda_activate)
+
             # get parameters cell
             code = ""
             for cell in notebook["cells"]:
@@ -243,7 +252,9 @@ class JobManager(LoggingConfigurable):
         return {
             "input": notebook_input,
             "output": notebook_output,
+            "cwd": notebook_cwd,
             "env": env,
+            "activate": conda_activate,
             "kernel": kernel,
             "parameters": variables,
             "status_code": 200

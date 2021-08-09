@@ -1,0 +1,13 @@
+Type: Jupyter Notebook Extension
+Name: nb_cron
+Description: An extension that allows you to manage cron tab.
+Main: tree.js
+Section: common
+Compatibility: 4.x, 5.x, 6.x
+tags:
+
+Parameters:
+- name: papermill_path
+  input_type: string
+  description: papermill path - pls press enter and refresh tree/notebook for change to take effect
+  default: "papermill"
