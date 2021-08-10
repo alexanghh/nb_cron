@@ -15,7 +15,9 @@ define([
 
     // define default values for config parameters
     var config = {
-        papermill_path: 'papermill'
+        papermill_path: 'papermill',
+        exec_start_pre: '',
+        exec_start_post: ''
     };
 
     var NullView = {

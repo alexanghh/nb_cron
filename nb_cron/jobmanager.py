@@ -223,8 +223,12 @@ class JobManager(LoggingConfigurable):
                 # get current activated environment
                 if 'CONDA_DEFAULT_ENV' in os.environ:
                     env = os.environ['CONDA_DEFAULT_ENV']
-            if 'CONDA_PREFIX' in os.environ:
-                conda_activate = os.environ['CONDA_PREFIX'] + os.sep + "bin" + os.sep + "activate"
+            # use CONDA_EXE instead of CONDA_PREFIX (assumes activate co-exists with conda)
+            if 'CONDA_EXE' in os.environ:
+                conda_activate = 'activate'.join(os.environ['CONDA_EXE'].rsplit('conda', 1))
+                # defaults to empty if activate not found
+                if not os.path.isfile(conda_activate):
+                    conda_activate = ""
             self.log.debug('conda_activate: %s', conda_activate)
 
             # get parameters cell

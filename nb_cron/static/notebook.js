@@ -23,11 +23,25 @@ define([
 
     var conf = new configmod.ConfigSection('common', {base_url: utils.get_body_data("baseUrl")});
     conf.loaded.then(function () {
-        if (Jupyter.notebook && conf.data.hasOwnProperty('papermill_path')) {
-            var papermill_path = conf.data.papermill_path;
+        if (Jupyter.notebook && conf.data.nb_cron.hasOwnProperty('papermill_path')) {
+            var papermill_path = conf.data.nb_cron.papermill_path;
             if (papermill_path) {
-                console.log("papermill_path:", papermill_path);
+                console.log("[nb_cron] papermill_path:", papermill_path);
                 models.config.papermill_path = papermill_path;
+            }
+        }
+        if (Jupyter.notebook && conf.data.nb_cron.hasOwnProperty('exec_start_pre')) {
+            var exec_start_pre = conf.data.nb_cron.exec_start_pre;
+            if (exec_start_pre) {
+                console.log("[nb_cron] exec_start_pre:", exec_start_pre);
+                models.config.exec_start_pre = exec_start_pre;
+            }
+        }
+        if (Jupyter.notebook && conf.data.nb_cron.hasOwnProperty('exec_start_post')) {
+            var exec_start_post = conf.data.nb_cron.exec_start_post;
+            if (exec_start_post) {
+                console.log("[nb_cron] exec_start_post:", exec_start_post);
+                models.config.exec_start_post = exec_start_post;
             }
         }
     });
@@ -71,19 +85,22 @@ define([
 
     function show_add_cron_view() {
 
-        function job_callback(schedule, command, comment) {
-            models.jobs.create(schedule, command, comment)
-        }
+        // save notebook before inspection
+        Jupyter.notebook.save_checkpoint().then(function () {
 
-        var title = 'New Job'
+            function job_callback(schedule, command, comment) {
+                models.jobs.create(schedule, command, comment)
+            }
 
-        var jobDialog = views.prompts.jobPrompt(title, job_callback);
-        jobDialog.find('#job_comment').val('cron job for ' + Jupyter.notebook.notebook_name);
+            var title = 'New Job';
 
-        var papermillDialog = views.prompts.papermillBuilderPrompt(jobDialog.find('#job_command'), title);
-        papermillDialog.find('#notebook_input').val(Jupyter.notebook.notebook_path);
-        Jupyter.notebook
-        papermillDialog.find('#inspect_notebook').trigger($.Event("click"));
+            var jobDialog = views.prompts.jobPrompt(title, job_callback);
+            jobDialog.find('#job_comment').val('cron job for ' + Jupyter.notebook.notebook_name);
+
+            var papermillDialog = views.prompts.papermillBuilderPrompt(jobDialog.find('#job_command'), title);
+            papermillDialog.find('#notebook_input').val(Jupyter.notebook.notebook_path);
+            papermillDialog.find('#inspect_notebook').trigger($.Event("click"));
+        });
     }
 
     function editJob(job) {
@@ -113,6 +130,18 @@ define([
         });
     }
 
+    function set_papermill_parameters_cell() {
+        var cell = Jupyter.notebook.get_selected_cell();
+        if (cell.metadata.tags) {
+            if (!cell.metadata.tags.includes("parameters"))
+                cell.metadata.tags.push("parameters");
+        } else
+            cell.metadata.tags = ["parameters"]
+        Jupyter.CellToolbar.activate_preset("Tags");
+        Jupyter.CellToolbar.global_hide()
+        Jupyter.CellToolbar.global_show()
+    }
+
     function load() {
         if (!Jupyter.notebook) return;
 
@@ -137,6 +166,7 @@ define([
                 $('ul.nav.navbar-nav').append(cron_menu);
                 $('#cron_job_list').click(load_cron_view);
                 $('#cron_schedule_notebook').click(show_add_cron_view);
+                $('#cron_set_parameter_cell').click(set_papermill_parameters_cell);
 
                 check_notebook_scheduled();
             }

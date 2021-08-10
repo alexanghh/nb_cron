@@ -20,11 +20,25 @@ define([
 
     var conf = new configmod.ConfigSection('common', {base_url: utils.get_body_data("baseUrl")});
     conf.loaded.then(function () {
-        if (Jupyter.notebook_list && conf.data.hasOwnProperty('papermill_path')) {
-            var papermill_path = conf.data.papermill_path;
+        if (Jupyter.notebook_list && conf.data.nb_cron.hasOwnProperty('papermill_path')) {
+            var papermill_path = conf.data.nb_cron.papermill_path;
             if (papermill_path) {
-                console.log("papermill_path:", papermill_path);
+                console.log("[nb_cron] papermill_path:", papermill_path);
                 models.config.papermill_path = papermill_path;
+            }
+        }
+        if (Jupyter.notebook_list && conf.data.nb_cron.hasOwnProperty('exec_start_pre')) {
+            var exec_start_pre = conf.data.nb_cron.exec_start_pre;
+            if (exec_start_pre) {
+                console.log("[nb_cron] exec_start_pre:", exec_start_pre);
+                models.config.exec_start_pre = exec_start_pre;
+            }
+        }
+        if (Jupyter.notebook_list && conf.data.nb_cron.hasOwnProperty('exec_start_post')) {
+            var exec_start_post = conf.data.nb_cron.exec_start_post;
+            if (exec_start_post) {
+                console.log("[nb_cron] exec_start_post:", exec_start_post);
+                models.config.exec_start_post = exec_start_post;
             }
         }
     });

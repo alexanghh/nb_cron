@@ -19,6 +19,7 @@ This extension adds a *Cron* tab to the Jupyter file browser and a *Cron* menu i
 * Helper to build papermill command
   * Allows setting of notebook's environment, kernel and parameters
   * Able to inspect notebook (relative or full path) to extract environment, kernel and parameters to build papermill command and options
+  * Able to set commands to run before and/or after papermill using jupyter_nbextensions_configurator 
 
 ## Installation
 After installing the package using conda or pip, you can add nb_cron to jupyter as follows:
@@ -53,3 +54,7 @@ To edit existing cron job that uses current notebook
 * Click *Edit notebook job*.
 * Only available if there is an existing cron job contains the current notebook in the cron command.
 * Only able to edit the first job. Please use *View cron jobs* to edit if there are multiple jobs for the notebook.
+
+To set parameters tag for papermill
+* Click notebook cell that you want to parameterize (cell that contains all the parameters for running papermill)
+* Click *Cron* > *Set papermill parameters cell* in menu bar. 

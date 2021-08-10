@@ -1,13 +1,21 @@
 Type: Jupyter Notebook Extension
 Name: nb_cron
-Description: An extension that allows you to manage cron tab.
+Description: An extension that allows you to manage cron tab. Pls refresh tree/notebook for changes to take effect.
 Main: tree.js
 Section: common
 Compatibility: 4.x, 5.x, 6.x
 tags:
 
 Parameters:
-- name: papermill_path
+- name: nb_cron.papermill_path
   input_type: string
-  description: papermill path - pls press enter and refresh tree/notebook for change to take effect
+  description: path of papermill
   default: "papermill"
+- name: nb_cron.exec_start_pre
+  input_type: string
+  description: shell command to run before conda activate and papermill command (for papermill command builder). E.g. set environment variables or source a (profile) file
+  default: ""
+- name: nb_cron.exec_start_post
+  input_type: string
+  description: shell command to run after papermill command (for papermill command builder). E.g. job clean up
+  default: ""

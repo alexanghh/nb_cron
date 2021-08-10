@@ -168,8 +168,20 @@ define([
                 ));
 
             function ok() {
-                let command_string = models.config.papermill_path + ' "' + $('#notebook_input').val() + '" "' + $('#notebook_output').val() +
-                    '" --cwd "' + $('#notebook_cwd').val() + '" --kernel ' + $('#notebook_kernel').val()
+                if (!$('#notebook_input').val()) {
+                    command.val("");
+                    return;
+                }
+
+                let command_string = models.config.papermill_path + ' "' + $('#notebook_input').val() + '"'
+
+                if ($('#notebook_output').val())
+                    command_string += ' "' + $('#notebook_output').val() + '"'
+                if ($('#notebook_cwd').val())
+                    command_string += ' --cwd "' + $('#notebook_cwd').val() + '"'
+                if ($('#notebook_kernel').val())
+                    command_string += ' --kernel "' + $('#notebook_kernel').val() + '"'
+
                 var params_key = $("input[id='notebook_parameters_key[]']").map(function () {
                     return $(this).val();
                 }).get();
@@ -188,9 +200,13 @@ define([
                         }
                     }
                 }
-                if ($('#notebook_env').val() &&  $('#notebook_env_activate').val()) {
+                if ($('#notebook_env').val() && $('#notebook_env_activate').val()) {
                     command_string = '. ' + $('#notebook_env_activate').val() + ' ' + $('#notebook_env').val() + '; ' + command_string
                 }
+                if (models.config.exec_start_pre)
+                    command_string = models.config.exec_start_pre + '; ' + command_string
+                if (models.config.exec_start_post)
+                    command_string = command_string + "; " + models.config.exec_start_post
                 command.val(command_string);
             }
 
