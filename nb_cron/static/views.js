@@ -115,6 +115,7 @@ define([
             var input = $('<textarea id="notebook_input" class="short-textarea-field"/>');
             var output = $('<textarea id="notebook_output" class="short-textarea-field"/>');
             var cwd = $('<textarea id="notebook_cwd" class="short-textarea-field"/>');
+            var log = $('<textarea id="notebook_log" class="short-textarea-field"/>');
             var env = $('<input id="notebook_env" class="input-field"/>');
             var activate = $('<input type="hidden" id="notebook_env_activate"/>');
             var kernel = $('<input id="notebook_kernel" class="input-field"/>');
@@ -125,13 +126,15 @@ define([
                     .append($('<label for="notebook_input"><span>Input Notebook</span></label>'))
                     .append(input)
                     .append(common.icon('search').attr('id', 'inspect_notebook').addClass('fa-lg').attr('title', 'Inspect notebook').click(function () {
-                        models.notebook.gen_papermill_param(input.val(), input, output, cwd, env, activate, kernel, parameters)
+                        models.notebook.gen_papermill_param(input.val(), input, output, log, cwd, env, activate, kernel, parameters)
                         return false;
                     }))
                     .append($('<label for="notebook_output"><span>Output Notebook</span></label>'))
                     .append(output)
                     .append($('<label for="notebook_cwd"><span>Working Directory</span></label>'))
                     .append(cwd)
+                    .append($('<label for="notebook_log"><span>Log file</span></label>'))
+                    .append(log)
                     .append($('<label for="notebook_env"><span>Env</span></label>'))
                     .append(env)
                     .append(activate)
@@ -161,7 +164,7 @@ define([
                         .append($('<div id="notebook_parameters_header" class="list_header row">')
                             .append($('<div class="col-xs-5">Variable</div>'))
                             .append($('<div class="col-xs-5">Value</div>'))
-                            .append($('<div class="col-xs-2" title="Force parameter to be string">String?</div>'))
+                            .append($('<div class="col-xs-2" title="Force parameter to be string (even if value is int,float,boolean,etc)">Force String?</div>'))
                         )
                         .append(parameters)
                     )
@@ -200,13 +203,28 @@ define([
                         }
                     }
                 }
+                // logging for main command
+                if ($('#notebook_log').val())
+                    command_string += ' >> "' + $('#notebook_log').val() + '" 2>&1'
+
                 if ($('#notebook_env').val() && $('#notebook_env_activate').val()) {
-                    command_string = '. ' + $('#notebook_env_activate').val() + ' ' + $('#notebook_env').val() + '; ' + command_string
+                    if ($('#notebook_log').val())
+                        command_string = '. ' + $('#notebook_env_activate').val() + ' ' + $('#notebook_env').val() + ' >> "' + $('#notebook_log').val() + '" 2>&1; ' + command_string
+                    else
+                        command_string = '. ' + $('#notebook_env_activate').val() + ' ' + $('#notebook_env').val() + '; ' + command_string
                 }
-                if (models.config.exec_start_pre)
-                    command_string = models.config.exec_start_pre + '; ' + command_string
-                if (models.config.exec_start_post)
-                    command_string = command_string + "; " + models.config.exec_start_post
+                if (models.config.exec_start_pre) {
+                    if ($('#notebook_log').val())
+                        command_string = models.config.exec_start_pre + ' >> "' + $('#notebook_log').val() + '" 2>&1; ' + command_string
+                    else
+                        command_string = models.config.exec_start_pre + '; ' + command_string
+                }
+                if (models.config.exec_start_post) {
+                    command_string += "; " + models.config.exec_start_post
+                    if ($('#notebook_log').val())
+                        command_string += ' >> "' + $('#notebook_log').val() + '" 2>&1;'
+                }
+
                 command.val(command_string);
             }
 

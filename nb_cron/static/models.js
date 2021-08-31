@@ -17,7 +17,8 @@ define([
     var config = {
         papermill_path: 'papermill',
         exec_start_pre: '',
-        exec_start_post: ''
+        exec_start_post: '',
+        disable_papermill_log_builder: false
     };
 
     var NullView = {
@@ -143,12 +144,15 @@ define([
     }
 
     var notebook = {
-        gen_papermill_param: function (path, input, output, cwd, env, activate, kernel, parameters) {
+        gen_papermill_param: function (path, input, output, log, cwd, env, activate, kernel, parameters) {
             var error_callback = common.MakeErrorCallback('Error Checking Schedule', 'An error occurred while processing "' + path + '"');
 
             function build_papermill(data, status, xhr) {
                 input.val(data.input || "")
                 output.val(data.output || "")
+                console.log("disable_papermill_log_builder: " + config.disable_papermill_log_builder)
+                if(!config.disable_papermill_log_builder)
+                    log.val(data.log || "")
                 cwd.val(data.cwd || "")
                 env.val(data.env || "")
                 activate.val(data.activate || "")

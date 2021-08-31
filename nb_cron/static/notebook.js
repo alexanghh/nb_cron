@@ -44,6 +44,11 @@ define([
                 models.config.exec_start_post = exec_start_post;
             }
         }
+        if (Jupyter.notebook && conf.data.nb_cron.hasOwnProperty('disable_papermill_log_builder')) {
+            var disable_papermill_log_builder = conf.data.nb_cron.disable_papermill_log_builder;
+            console.log("[nb_cron] disable_papermill_log_builder:", disable_papermill_log_builder);
+            models.config.disable_papermill_log_builder = disable_papermill_log_builder;
+        }
     });
 
     function show_cron_view($view) {

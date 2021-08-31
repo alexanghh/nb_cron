@@ -205,6 +205,7 @@ class JobManager(LoggingConfigurable):
             import os
             notebook_input = os.path.abspath(path)
             notebook_output = notebook_input.replace(".ipynb", "_output.ipynb")
+            notebook_log = notebook_input + ".cron.log"
             notebook_cwd = os.sep.join(notebook_input.split(os.sep)[:-1])
             notebook_string = open(notebook_input).read()
             notebook = json.loads(notebook_string)
@@ -256,6 +257,7 @@ class JobManager(LoggingConfigurable):
         return {
             "input": notebook_input,
             "output": notebook_output,
+            "log": notebook_log,
             "cwd": notebook_cwd,
             "env": env,
             "activate": conda_activate,

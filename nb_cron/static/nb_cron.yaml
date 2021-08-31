@@ -19,3 +19,7 @@ Parameters:
   input_type: string
   description: shell command to run after papermill command (for papermill command builder). E.g. job clean up
   default: ""
+- name: nb_cron.disable_papermill_log_builder
+  input_type: checkbox
+  description: disable the log file generation in papermill command builder
+  default: false

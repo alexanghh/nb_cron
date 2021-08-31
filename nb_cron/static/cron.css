@@ -25,7 +25,7 @@ div.scrollable {
 
 div.big_scrollable {
     overflow-y: auto;
-    height: 280px;
+    height: 360px;
 }
 
 div.half_width {
