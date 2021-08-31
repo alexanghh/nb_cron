@@ -131,6 +131,24 @@ define([
     }
 
     function set_papermill_parameters_cell() {
+        // clear parameters tag from all cell
+        Jupyter.notebook.get_cells().forEach(function (cell) {
+            // Remove from metadata
+            if (cell.metadata && cell.metadata.tags) {
+                // Remove tag from tags list
+                var index = cell.metadata.tags.indexOf("parameters");
+                if (index !== -1) {
+                    console.log("parameters found in cell");
+                    cell.metadata.tags.splice(index, 1);
+                }
+                // If tags list is empty, remove it
+                if (cell.metadata.tags.length === 0) {
+                    delete cell.metadata.tags;
+                }
+            }
+        })
+
+        // add parameters tag to selected cell
         var cell = Jupyter.notebook.get_selected_cell();
         if (cell.metadata.tags) {
             if (!cell.metadata.tags.includes("parameters"))
@@ -140,6 +158,9 @@ define([
         Jupyter.CellToolbar.activate_preset("Tags");
         Jupyter.CellToolbar.global_hide()
         Jupyter.CellToolbar.global_show()
+        Jupyter.notebook.metadata.celltoolbar = "Tags"
+
+        Jupyter.notebook.save_checkpoint()
     }
 
     function load() {
