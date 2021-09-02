@@ -14,9 +14,12 @@ from traitlets.config.configurable import LoggingConfigurable
 
 
 class JobManager(LoggingConfigurable):
-    conda_prefix = Unicode(
-        help="prefix to detect conda", allow_none=True, default_value='conda-env-.conda-'
-    ).tag(config=True, env="NBCRON_CONDA_PREFIX")
+    conda_prefix_local = Unicode(
+        help="prefix to detect conda in local environment", allow_none=True, default_value='conda-env-.conda-'
+    ).tag(config=True, env="NBCRON_CONDA_PREFIX_LOCAL")
+    conda_prefix_global = Unicode(
+        help="prefix to detect conda in global environment", allow_none=True, default_value='conda-env-'
+    ).tag(config=True, env="NBCRON_CONDA_PREFIX_GLOBAL")
     conda_separator = Unicode(
         help="separator between env and kernel name", allow_none=True, default_value='-'
     ).tag(config=True, env="NBCRON_CONDA_SEPARATOR")
@@ -214,8 +217,12 @@ class JobManager(LoggingConfigurable):
             conda_activate = ""
             kernel = notebook["metadata"]["kernelspec"]["name"]
             # check for conda env
-            if kernel.startswith(self.conda_prefix):
-                env_kernel = kernel[len(self.conda_prefix):].split(self.conda_separator)
+            if kernel.startswith(self.conda_prefix_local) or kernel.startswith(self.conda_prefix_global):
+                env_kernel = ""
+                if kernel.startswith(self.conda_prefix_local):
+                    env_kernel = kernel[len(self.conda_prefix_local):].split(self.conda_separator)
+                elif kernel.startswith(self.conda_prefix_global):
+                    env_kernel = kernel[len(self.conda_prefix_global):].split(self.conda_separator)
                 env = env_kernel[0]
                 kernel = self.conda_separator.join(env_kernel[1:])
                 if env and kernel == 'py':
