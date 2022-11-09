@@ -52,7 +52,7 @@ class NbCronNotebookTest(NotebookTestBase):
         try:
             self.driver.get(self.base_url() + '?token=' + self.token)
             self.driver.implicitly_wait(30)  # seconds
-            body = self.driver.find_element_by_tag_name("body")
+            body = self.driver.find_element(By.TAG_NAME,"body")
         except NoSuchElementException:
             pass
         self.assertIsNotNone(body)
@@ -62,7 +62,7 @@ class NbCronNotebookTest(NotebookTestBase):
         try:
             self.driver.get(self.base_url() + '?token=' + self.token)
             self.driver.implicitly_wait(30)  # seconds
-            cron_tab = self.driver.find_element_by_id("cron_tab")
+            cron_tab = self.driver.find_element(By.ID, "cron_tab")
         except NoSuchElementException:
             pass
         self.assertIsNotNone(cron_tab)
@@ -72,7 +72,7 @@ class NbCronNotebookTest(NotebookTestBase):
         try:
             self.driver.get(self.base_url() + '?token=' + self.token)
             self.driver.implicitly_wait(30)  # seconds
-            job_list = self.driver.find_element_by_id("job_list_body")
+            job_list = self.driver.find_element(By.ID, "job_list_body")
         except NoSuchElementException:
             pass
         self.assertIsNotNone(job_list)
@@ -82,7 +82,7 @@ class NbCronNotebookTest(NotebookTestBase):
         try:
             self.driver.get(self.base_url() + '?token=' + self.token)
             self.driver.implicitly_wait(30)  # seconds
-            job_list = self.driver.find_element_by_id("job_list_body")
+            job_list = self.driver.find_element(By.ID, "job_list_body")
             WebDriverWait(self.driver, 30).until(expected_conditions.element_to_be_clickable((By.ID, "cron_tab"))).click()
             WebDriverWait(self.driver, 30).until(expected_conditions.element_to_be_clickable((By.ID, "new_job"))).click()
             WebDriverWait(self.driver, 30).until(expected_conditions.element_to_be_clickable((By.ID, "job_schedule"))).send_keys("* * * * *")
@@ -96,7 +96,7 @@ class NbCronNotebookTest(NotebookTestBase):
         try:
             self.driver.get(self.base_url() + '?token=' + self.token)
             self.driver.implicitly_wait(30)  # seconds
-            job_list = self.driver.find_element_by_id("job_list_body")
+            job_list = self.driver.find_element(By.ID, "job_list_body")
             WebDriverWait(self.driver, 30).until(expected_conditions.element_to_be_clickable((By.ID, "cron_tab"))).click()
             WebDriverWait(self.driver, 30).until(expected_conditions.element_to_be_clickable((By.ID, "new_job"))).click()
             WebDriverWait(self.driver, 30).until(expected_conditions.element_to_be_clickable((By.ID, "papermill_builder"))).click()
