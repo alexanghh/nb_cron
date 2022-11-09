@@ -1,11 +1,9 @@
-dist: focal          # or bionic | xenial | trusty | precise with xenial as default
 language: python
 python:
   - "3.6"      # current default Python on Travis CI
   - "3.7"
   - "3.8"
   - "3.9"
-  - "3.10"
 
 # command to install dependencies
 install:
