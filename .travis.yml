@@ -1,3 +1,4 @@
+dist: focal          # or bionic | xenial | trusty | precise with xenial as default
 language: python
 python:
   - "3.6"      # current default Python on Travis CI
