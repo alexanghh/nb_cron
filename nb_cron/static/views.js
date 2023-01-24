@@ -205,7 +205,7 @@ define([
                 }
 
                 if ($('#notebook_env').val() && $('#notebook_env_activate').val()) {
-                    command_string = '. ' + $('#notebook_env_activate').val() + ' ' + $('#notebook_env').val() + '; ' + command_string
+                    command_string = '. ' + $('#notebook_env_activate').val() + '; conda activate ' + $('#notebook_env').val() + '; ' + command_string
                 }
                 if (models.config.exec_start_pre) {
                     command_string = models.config.exec_start_pre.replace(/([; ]+)$/g, '') + '; ' + command_string
