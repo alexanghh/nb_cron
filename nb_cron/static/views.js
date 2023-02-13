@@ -203,26 +203,20 @@ define([
                         }
                     }
                 }
-                // logging for main command
-                if ($('#notebook_log').val())
-                    command_string += ' >> "' + $('#notebook_log').val() + '" 2>&1'
 
                 if ($('#notebook_env').val() && $('#notebook_env_activate').val()) {
-                    if ($('#notebook_log').val())
-                        command_string = '. ' + $('#notebook_env_activate').val() + ' ' + $('#notebook_env').val() + ' >> "' + $('#notebook_log').val() + '" 2>&1; ' + command_string
-                    else
-                        command_string = '. ' + $('#notebook_env_activate').val() + ' ' + $('#notebook_env').val() + '; ' + command_string
+                    command_string = '. ' + $('#notebook_env_activate').val() + '; conda activate ' + $('#notebook_env').val() + '; ' + command_string
                 }
                 if (models.config.exec_start_pre) {
-                    if ($('#notebook_log').val())
-                        command_string = models.config.exec_start_pre + ' >> "' + $('#notebook_log').val() + '" 2>&1; ' + command_string
-                    else
-                        command_string = models.config.exec_start_pre + '; ' + command_string
+                    command_string = models.config.exec_start_pre.replace(/([; ]+)$/g, '') + '; ' + command_string
                 }
                 if (models.config.exec_start_post) {
-                    command_string += "; " + models.config.exec_start_post
-                    if ($('#notebook_log').val())
-                        command_string += ' >> "' + $('#notebook_log').val() + '" 2>&1;'
+                    command_string += "; " + models.config.exec_start_post.replace(/([; ]+)$/g, '')
+                }
+
+                // logging
+                if ($('#notebook_log').val()) {
+                    command_string = '(' + command_string + ') >> "' + $('#notebook_log').val() + '" 2>&1;'
                 }
 
                 command.val(command_string);
