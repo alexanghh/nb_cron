@@ -1,12 +1,13 @@
+{% set setup_data = load_setup_py_data(setup_file='../setup.py', from_recipe_dir=True) %}
 {% set name = "nb_cron" %}
-{% set data = load_setup_py_data() %}
+{% set version = setup_data.get('version') %
 
 package:
   name: {{ name|lower }}
-  version: {{ data.get('version') }}
+  version: {{ version }}
 
 source:
-  url: /home/alexanghh/PycharmProjects/nb_cron/dist/nb_cron-0.2.1+0.ge4122fd.dirty.tar.gz
+  url: ../dist/nb_cron-{{ version }}.tar.gz
 
 build:
   number: 0
