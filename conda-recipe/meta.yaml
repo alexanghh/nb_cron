@@ -1,6 +1,6 @@
 {% set setup_data = load_setup_py_data(setup_file='../setup.py', from_recipe_dir=True) %}
 {% set name = "nb_cron" %}
-{% set version = setup_data.get('version') %
+{% set version = setup_data.get('version') %}
 
 package:
   name: {{ name|lower }}
