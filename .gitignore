@@ -60,3 +60,4 @@ target/
 screenshots/
 node_modules/
 /not_working/
+venv/

@@ -2,7 +2,7 @@ coverage
 coveralls
 croniter
 flake8
-notebook >=4.3.1
+notebook >=4.3.1,<7.0
 pytest
 pytest-cov
 geckodriver
@@ -11,4 +11,4 @@ requests
 selenium
 tornado
 traitlets
-yaml
+PyYAML
