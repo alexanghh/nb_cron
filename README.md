@@ -1,9 +1,7 @@
 # nb_cron
 
-[![Anaconda version](https://anaconda.org/conda-forge/nb_cron/badges/version.svg)](https://anaconda.org/conda-forge/nb_cron)
-[![Install with conda](https://anaconda.org/conda-forge/nb_cron/badges/installer/conda.svg)](https://anaconda.org/conda-forge/nb_cron)
 [![PyPI version](https://badge.fury.io/py/nb-cron.svg)](https://pypi.org/project/nb-cron/)
-[![Build Status](https://travis-ci.com/alexanghh/nb_cron.svg)](https://travis-ci.com/github/alexanghh/nb_cron) 
+[![Build Status](https://github.com/alexanghh/nb_cron/actions/workflows/main.yml/badge.svg)](https://github.com/alexanghh/nb_cron/actions/workflows/main.yml)
 [![Coverage Status](https://coveralls.io/repos/github/alexanghh/nb_cron/badge.svg?branch=master)](https://coveralls.io/github/alexanghh/nb_cron?branch=master)
 
 Provides crontab access from within Jupyter.
@@ -22,8 +20,9 @@ This extension adds a *Cron* tab to the Jupyter file browser and a *Cron* menu i
   * Able to set commands to run before and/or after papermill using jupyter_nbextensions_configurator 
 
 ## Installation
-After installing the package using conda or pip, you can add nb_cron to jupyter as follows:
+
 ```
+pip install nb_cron
 jupyter nbextension install nb_cron --py --sys-prefix --symlink
 jupyter nbextension enable nb_cron --py --sys-prefix
 jupyter serverextension enable nb_cron --py --sys-prefix
@@ -57,4 +56,18 @@ To edit existing cron job that uses current notebook
 
 To set parameters tag for papermill
 * Click notebook cell that you want to parameterize (cell that contains all the parameters for running papermill)
-* Click *Cron* > *Set papermill parameters cell* in menu bar. 
+* Click *Cron* > *Set papermill parameters cell* in menu bar.
+
+## Development
+
+To set up a development environment, you can use Poetry:
+
+```bash
+poetry install
+```
+
+To run the tests:
+
+```bash
+poetry run pytest
+```
