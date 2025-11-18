@@ -18,9 +18,15 @@ from subprocess import Popen
 from tempfile import TemporaryFile
 
 from pkg_resources import parse_version
-from notebook.utils import url_path_join as ujoin
-from notebook.base.handlers import APIHandler
+from jupyter_server.base.handlers import APIHandler
 from tornado import web
+
+
+def ujoin(*pieces):
+    """Join components of url into a relative url.
+    Use public API instead of internal routing methods.
+    """
+    return "/".join(s.strip("/") for s in pieces)
 
 from .jobmanager import JobManager
 
