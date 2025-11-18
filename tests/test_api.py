@@ -6,23 +6,35 @@
 # The full license is in the file LICENSE, distributed with this software.  #
 #############################################################################
 import sys
+import subprocess
+import pytest
 
 import requests
-from notebook.nbextensions import enable_nbextension_python, install_nbextension_python
-from notebook.serverextensions import toggle_serverextension_python
-from notebook.tests.launchnotebook import NotebookTestBase
-from notebook.utils import url_path_join
 from traitlets.config.loader import Config
 
 import nb_cron
 
 
+def url_path_join(*pieces):
+    """Join components of url into a relative url.
+    Use public API instead of internal routing methods.
+    """
+    return "/".join(s.strip("/") for s in pieces)
+
+
 class NbCronAPI(object):
     """Wrapper for nbconvert API calls."""
 
-    def __init__(self, base_url, token):
-        self.base_url = str(base_url)
-        self.token = str(token)
+    def __init__(self, jp_serverapp):
+        self.jp_serverapp = jp_serverapp
+
+    @property
+    def base_url(self):
+        return f"http://localhost:{self.jp_serverapp.port}{self.jp_serverapp.base_url}"
+
+    @property
+    def token(self):
+        return self.jp_serverapp.token
 
     def _req(self, verb, path, body=None, params=None):
         if body is None:
@@ -55,120 +67,120 @@ class NbCronAPI(object):
             return {}
 
 
-class NbCronAPITest(NotebookTestBase):
-    def setUp(self):
-        if 'nb_cron' not in sys.modules:
-            sys.modules['nb_cron'] = nb_cron
-        c = Config()
-        c.NotebookApp.nbserver_extensions = {}
-        c.NotebookApp.nbserver_extensions.update({'nb_cron': True})
-        c.NotebookApp.allow_origin = '*'
-        c.NotebookApp.allow_credentials = True
-        c.NotebookApp.disable_check_xsrf = True
-        self.config = c
-        install_nbextension_python("nb_cron", user=True)
-        enable_nbextension_python("nb_cron")
-        toggle_serverextension_python("nb_cron", True)
-        super(NbCronAPITest, self).setUp()
-        self.__class__.notebook.init_server_extension_config()
-        self.__class__.notebook.init_server_extensions()
+@pytest.fixture
+def cron_api(jp_serverapp):
+    print("Creating NbCronAPI")
+    api = NbCronAPI(jp_serverapp)
+    print("NbCronAPI created")
+    return api
 
-        # chrome_options = Options()
-        # # chrome_options.add_argument("--headless")
-        # self.driver = webdriver.Chrome(options=chrome_options)
-        # self.driver.get(self.base_url() + '?token=' + self.token)
-        # self.driver.implicitly_wait(120)  # seconds
-        # import time
-        # time.sleep(60)
 
-        self.cron_api = NbCronAPI(self.base_url(), self.token)
-        self.job_schedule = "* * * * *"
-        self.job_command = "echo"
-        self.job_comment = "comment"
-        self.notebook_path = "tests/python parameter test.ipynb"
-        self.create_job()
-        self.job_id = len(self.cron_api.jobs()) - 1
+@pytest.fixture
+def job(cron_api):
+    job_schedule = "* * * * *"
+    job_command = "echo"
+    job_comment = "comment"
+    cron_api.post(["jobs", str(-1), "create"], params={"schedule": job_schedule, "command": job_command, "comment": job_comment})
+    jobs = cron_api.jobs()["jobs"]
+    job_id = jobs[-1]["id"]
+    yield
+    cron_api.post(["jobs", str(job_id), "remove"])
 
-    def tearDown(self):
-        # self.driver.quit()
-        self.remove_job(self.job_id)
-        super(NbCronAPITest, self).tearDown()
 
-    def create_job(self, schedule=None, command=None, comment=None):
-        return self.cron_api.post(["jobs", str(-1),
-                                   "create"],
-                                  params={"schedule": schedule or self.job_schedule,
-                                          "command": command or self.job_command,
-                                          "comment": comment or self.job_comment})
+def test_01_job_list(cron_api, job):
+    jobs = cron_api.jobs()
+    root = filter(lambda job: job["schedule"] == "* * * * *",
+                  jobs["jobs"])
+    assert len(list(root)) >= 1
 
-    def remove_job(self, jid=None):
-        return self.cron_api.post(["jobs", str(jid or self.job_id),
-                                   "remove"])
 
-    def edit_job(self, jid=None, schedule=None, command=None, comment=None):
-        return self.cron_api.post(["jobs", str(jid or self.job_id),
-                                   "edit"],
-                                  params={"schedule": schedule or self.job_schedule,
-                                          "command": command or self.job_command,
-                                          "comment": comment or self.job_comment})
+def test_02_job_create_and_remove(cron_api):
+    job_schedule = "* * * * *"
+    job_command = "echo"
+    job_comment = "comment"
+    r = cron_api.post(["jobs", str(-1), "create"], params={"schedule": job_schedule, "command": job_command, "comment": job_comment})
+    assert r.status_code == 201
+    jobs = cron_api.jobs()["jobs"]
+    job_id = jobs[-1]["id"]
+    r = cron_api.post(["jobs", str(job_id), "remove"])
+    assert r.status_code == 200
 
-    def check_schedule(self, schedule=None):
-        return self.cron_api.post(["schedule", "check"],
-                                  params={"schedule": schedule or self.job_schedule})
 
-    def extract_papermill_parameters(self, notebook_path=None):
-        return self.cron_api.post(["notebook", "papermill"],
-                                  params={"path": notebook_path or self.notebook_path})
+def test_03_job_create_fail(cron_api):
+    r = cron_api.post(["jobs", str(-1), "create"], params={"schedule": " ", "command": "echo", "comment": "comment"})
+    assert r.status_code == 422
+    r = cron_api.post(["jobs", str(-1), "create"], params={"schedule": "* * * * * *", "command": "echo", "comment": "comment"})
+    assert r.status_code == 422
 
-    def test_01_job_list(self):
-        jobs = self.cron_api.jobs()
-        root = filter(lambda job: job["schedule"] == "* * * * *",
-                      jobs["jobs"])
-        self.assertGreaterEqual(len(list(root)), 1)
 
-    def test_02_job_create_and_remove(self):
-        self.assertEqual(self.create_job().status_code, 201)
-        jid = len(self.cron_api.jobs()) - 1
-        self.assertEqual(self.remove_job(jid).status_code, 200)
+def test_04_job_remove_fail(cron_api):
+    r = cron_api.post(["jobs", ' ', "remove"])
+    assert r.status_code == 404
+    r = cron_api.post(["jobs", str(-2), "remove"])
+    assert r.status_code == 404
+    r = cron_api.post(["jobs", str(999999), "remove"])
+    assert r.status_code == 422
 
-    def test_03_job_create_fail(self):
-        self.assertEqual(self.create_job(schedule=" ").status_code, 422)
-        self.assertEqual(self.create_job(schedule="* * * * * *").status_code, 422)
-    
-    def test_04_job_remove_fail(self):
-        self.assertEqual(self.remove_job(' ').status_code, 404)
-        self.assertEqual(self.remove_job(-2).status_code, 404)
-        self.assertEqual(self.remove_job(999999).status_code, 422)
 
-    def test_05_job_create_edit_remove(self):
-        self.assertEqual(self.create_job().status_code, 201)
-        jid = len(self.cron_api.jobs()) - 1
-        self.assertEqual(self.edit_job(jid, command='echo edit test').status_code, 200)
-        self.assertEqual(self.remove_job(jid).status_code, 200)
+def test_05_job_create_edit_remove(cron_api):
+    job_schedule = "* * * * *"
+    job_command = "echo"
+    job_comment = "comment"
+    r = cron_api.post(["jobs", str(-1), "create"], params={"schedule": job_schedule, "command": job_command, "comment": job_comment})
+    assert r.status_code == 201
+    jobs = cron_api.jobs()["jobs"]
+    job_id = jobs[-1]["id"]
+    r = cron_api.post(["jobs", str(job_id), "edit"], params={"schedule": job_schedule, "command": "echo edit test", "comment": job_comment})
+    assert r.status_code == 200
+    r = cron_api.post(["jobs", str(job_id), "remove"])
+    assert r.status_code == 200
 
-    def test_06_job_edit_fail(self):
-        self.assertEqual(self.edit_job(jid=" ").status_code, 404)
-        self.assertEqual(self.edit_job(jid=8888).status_code, 422)
-        self.assertEqual(self.edit_job(command=" ").status_code, 422)
-        self.assertEqual(self.edit_job(schedule=" ").status_code, 422)
-        self.assertEqual(self.edit_job(schedule="* * * * * *").status_code, 422)
 
-    def test_07_job_nonsense(self):
-        r = self.cron_api.post(["jobs", str(self.job_id), "nonsense"])
-        self.assertEqual(r.status_code, 404)
+def test_06_job_edit_fail(cron_api, job):
+    jobs = cron_api.jobs()["jobs"]
+    job_id = jobs[-1]["id"]
+    r = cron_api.post(["jobs", ' ', "edit"], params={"schedule": "* * * * *", "command": "echo", "comment": "comment"})
+    assert r.status_code == 404
+    r = cron_api.post(["jobs", str(8888), "edit"], params={"schedule": "* * * * *", "command": "echo", "comment": "comment"})
+    assert r.status_code == 422
+    r = cron_api.post(["jobs", str(job_id), "edit"], params={"schedule": "* * * * *", "command": " ", "comment": "comment"})
+    assert r.status_code == 422
+    r = cron_api.post(["jobs", str(job_id), "edit"], params={"schedule": " ", "command": "echo", "comment": "comment"})
+    assert r.status_code == 422
+    r = cron_api.post(["jobs", str(job_id), "edit"], params={"schedule": "* * * * * *", "command": "echo", "comment": "comment"})
+    assert r.status_code == 422
 
-    def test_08_schedule_check(self):
-        self.assertEqual(self.check_schedule().status_code, 200)
 
-    def test_09_schedule_check_fail(self):
-        self.assertEqual(self.check_schedule(schedule=' ').status_code, 422)
-        self.assertEqual(self.check_schedule(schedule='* * * * * *').status_code, 422)
+def test_07_job_nonsense(cron_api, job):
+    jobs = cron_api.jobs()["jobs"]
+    job_id = jobs[-1]["id"]
+    r = cron_api.post(["jobs", str(job_id), "nonsense"])
+    assert r.status_code == 404
 
-    def test_10_extract_papermill_parameters(self):
-        self.assertEqual(self.extract_papermill_parameters(notebook_path='tests/python parameter test.ipynb').status_code, 200)
-        self.assertEqual(self.extract_papermill_parameters(notebook_path='tests/spark parameter test.ipynb').status_code, 200)
-        self.assertEqual(self.extract_papermill_parameters(notebook_path='tests/pyspark parameter test.ipynb').status_code, 200)
 
-    def test_11_extract_papermill_parameters_fail(self):
-        self.assertEqual(self.extract_papermill_parameters(notebook_path=' ').status_code, 422)
-        self.assertEqual(self.extract_papermill_parameters(notebook_path='test.ipynb').status_code, 422)
+def test_08_schedule_check(cron_api):
+    r = cron_api.post(["schedule", "check"], params={"schedule": "* * * * *"})
+    assert r.status_code == 200
+
+
+def test_09_schedule_check_fail(cron_api):
+    r = cron_api.post(["schedule", "check"], params={"schedule": " "})
+    assert r.status_code == 422
+    r = cron_api.post(["schedule", "check"], params={"schedule": "* * * * * *"})
+    assert r.status_code == 422
+
+
+def test_10_extract_papermill_parameters(cron_api):
+    r = cron_api.post(["notebook", "papermill"], params={"path": "tests/python parameter test.ipynb"})
+    assert r.status_code == 200
+    r = cron_api.post(["notebook", "papermill"], params={"path": "tests/spark parameter test.ipynb"})
+    assert r.status_code == 200
+    r = cron_api.post(["notebook", "papermill"], params={"path": "tests/pyspark parameter test.ipynb"})
+    assert r.status_code == 200
+
+
+def test_11_extract_papermill_parameters_fail(cron_api):
+    r = cron_api.post(["notebook", "papermill"], params={"path": " "})
+    assert r.status_code == 422
+    r = cron_api.post(["notebook", "papermill"], params={"path": "test.ipynb"})
+    assert r.status_code == 422
