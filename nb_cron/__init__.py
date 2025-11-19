@@ -7,9 +7,8 @@
 #############################################################################
 # flake8: noqa
 from .handlers import load_jupyter_server_extension
-from ._version import get_versions
-__version__ = get_versions()['version']
-del get_versions
+from . import _version
+__version__ = _version.get_versions()['version']
 
 def _jupyter_nbextension_paths():
     return [dict(section="notebook",
